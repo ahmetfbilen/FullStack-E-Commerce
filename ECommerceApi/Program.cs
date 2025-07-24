@@ -3,12 +3,12 @@ using ECommerceApi.Data; // DbContext sınıfını bu klasöre yazacağız
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣ Veritabanı bağlantısı (SQLite)
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-// 2️⃣ Controller'ları aktif et
+
 builder.Services.AddControllers();
 
 // 3️⃣ Swagger/OpenAPI

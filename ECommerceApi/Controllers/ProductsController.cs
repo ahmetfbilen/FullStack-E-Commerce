@@ -14,16 +14,8 @@ namespace ECommerceApi.Controllers
         {
             _context = context;
 
-            // Veritabanı boşsa örnek veriler ekle
-            if (!_context.Products.Any())
-            {
-                _context.Products.AddRange(
-                    new Product { Name = "T-Shirt", Price = 99.90m },
-                    new Product { Name = "Sneakers", Price = 249.50m },
-                    new Product { Name = "Laptop", Price = 8999.99m }
-                );
-                _context.SaveChanges();
-            }
+
+
         }
 
         [HttpGet]
@@ -94,6 +86,7 @@ namespace ECommerceApi.Controllers
             // Veritabanındaki ürünün özelliklerini gelen veriyle güncelleriz.
             existingProduct.Name = updatedProduct.Name;
             existingProduct.Price = updatedProduct.Price;
+            existingProduct.Image = updatedProduct.Image;
 
             // Değişiklikleri veritabanına kaydederiz.
             _context.SaveChanges();
