@@ -2,19 +2,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #2b2d42;
+    background-color: #b1b4d6;
     padding: 16px 40px;
     color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.logo {
-    font-size: 1.8rem;
-    font-weight: bold;
+.header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: white;
+    gap: 10px;
+}
+
+.logo {
+    height: 90px;
+    width: auto;
 }
 
 .nav-links {
@@ -23,7 +25,27 @@
 }
 
 .nav-button {
-    background-color: #edf2f4;
+    background-color: #ef07cc;
+    color: #2b2d42;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.nav-button2 {
+    background-color: #dc4a11;
+    color: #2b2d42;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.nav-button3 {
+    background-color: #02f70a;
     color: #2b2d42;
     padding: 8px 16px;
     text-decoration: none;

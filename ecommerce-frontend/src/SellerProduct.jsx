@@ -4,7 +4,7 @@ import './Components/SellerProduct.css';
 
 const BASE_URL = 'http://localhost:5203';
 
-export default function SellerProduct() {
+export default function ProductList() {
     const [products, setProducts] = useState([]);//ürünleri tutacak
     const [form, setForm] = useState({ name: '', price: '', image: '' });//girilen bilgileri tutması için
 
