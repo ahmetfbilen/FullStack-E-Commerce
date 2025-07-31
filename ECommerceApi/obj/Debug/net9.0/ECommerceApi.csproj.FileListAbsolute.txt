@@ -192,3 +192,5 @@ C:\Users\ahmet.bilen\Desktop\dotnet\EcommerceApi\bin\Debug\net9.0\runtimes\win\l
 C:\Users\ahmet.bilen\Desktop\dotnet\EcommerceApi\bin\Debug\net9.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\ahmet.bilen\Desktop\dotnet\ECommerceApi\bin\Debug\net9.0\package-lock.json
 C:\Users\ahmet.bilen\Desktop\dotnet\ECommerceApi\bin\Debug\net9.0\package.json
+C:\Users\ahmet.bilen\Desktop\dotnet\ECommerceApi\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\ahmet.bilen\Desktop\dotnet\ECommerceApi\bin\Debug\net9.0\BCrypt.Net-Core.dll

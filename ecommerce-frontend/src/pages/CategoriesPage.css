@@ -1,0 +1,99 @@
+.categories-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.categories-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.add-category-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-category-form input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.add-category-form button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-category-form button:hover {
+    background-color: #0056b3;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+}
+
+.category-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.category-list li:last-child {
+    border-bottom: none;
+}
+
+.category-list li span {
+    flex-grow: 1;
+    font-size: 1.1em;
+    color: #555;
+}
+
+.category-list li button {
+    margin-left: 10px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.category-list li button:first-of-type {
+    /* Düzenle butonu */
+    background-color: #28a745;
+    color: white;
+}
+
+.category-list li button:first-of-type:hover {
+    background-color: #218838;
+}
+
+.category-list li button:last-of-type {
+    /* Sil butonu */
+    background-color: #dc3545;
+    color: white;
+}
+
+.category-list li button:last-of-type:hover {
+    background-color: #c82333;
+}
+
+.category-list li input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+}
