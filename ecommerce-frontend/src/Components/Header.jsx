@@ -16,6 +16,8 @@ const Header = () => {
             </div>
             <nav className="nav-links">
                 <Link to="/" className="nav-button">Anasayfa</Link>
+                <Link to="/cart" className="nav-button">Sepetim</Link>
+
 
                 {isAuthenticated ? (
                     <>

@@ -11,6 +11,7 @@ import UserList from './UserList'; // UserList import'u
 import CategoriesPage from './pages/CategoriesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import Cart from './Cart.jsx';
 
 // --- Korunan Rota Bileşeni ---
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -64,6 +65,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/cart" element={<Cart />} />
 
         {/* Korunan Rotalar */}
         <Route
