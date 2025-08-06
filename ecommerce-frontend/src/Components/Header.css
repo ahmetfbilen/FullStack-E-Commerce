@@ -2,7 +2,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #b1b4d6;
+    background-color: #ed7b0a;
     padding: 16px 40px;
     color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -25,7 +25,7 @@
 }
 
 .nav-button {
-    background-color: #ef07cc;
+    background-color: #d4d2d2;
     color: #2b2d42;
     padding: 8px 16px;
     text-decoration: none;
@@ -35,7 +35,7 @@
 }
 
 .nav-button2 {
-    background-color: #dc4a11;
+    background-color: #d4d2d2;
     color: #2b2d42;
     padding: 8px 16px;
     text-decoration: none;
@@ -45,7 +45,17 @@
 }
 
 .nav-button3 {
-    background-color: #02f70a;
+    background-color: #d4d2d2;
+    color: #2b2d42;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.nav-button4 {
+    background-color: #f5f5f5;
     color: #2b2d42;
     padding: 8px 16px;
     text-decoration: none;

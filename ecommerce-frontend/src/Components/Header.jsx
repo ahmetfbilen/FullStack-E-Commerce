@@ -32,7 +32,7 @@ const Header = () => {
                         )}
                         <button
                             onClick={logout}
-                            className="nav-button"
+                            className="nav-button4"
                             style={{ marginLeft: '10px' }}
                         >
                             Çıkış Yap
