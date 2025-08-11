@@ -3,6 +3,7 @@ using ECommerceApi.Data;
 using ECommerceApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore; // Include ve ToListAsync için
+using System.Security.Claims; // 🔹 claims için
 
 namespace ECommerceApi.Controllers
 {
@@ -22,10 +23,40 @@ namespace ECommerceApi.Controllers
         [AllowAnonymous]
         [HttpGet]
         // Ürünleri getirirken kategorilerini de dahil et ve çıktıyı temizle
-        public async Task<IActionResult> Get() // async Task<IActionResult> olmalı
+        public async Task<IActionResult> Get( // async Task<IActionResult> olmalı
+            [FromQuery] string? q,             // 🔹 arama metni (opsiyonel)
+            [FromQuery] int? categoryId,       // 🔹 kategori filtresi (opsiyonel)
+            [FromQuery] int? sellerId          // 🔹 satıcı filtresi (opsiyonel)
+        )
         {
+            // 🔹 Filtrelenebilir sorgu oluştur (Include + AsQueryable)
+            var query = _context.Products
+                .Include(p => p.Category)
+                .AsQueryable();
+
+            // 🔹 Arama filtresi (adı veya istersen açıklama)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                query = query.Where(p =>
+                    p.Name.Contains(q)            // ürün adı
+                /* || p.Description!.Contains(q) */ // açıklama alanın varsa aç
+                );
+            }
+
+            // 🔹 Kategori filtresi
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // 🔹 Satıcı filtresi (belirli bir kullanıcının ekledikleri)
+            if (sellerId.HasValue)
+            {
+                query = query.Where(p => p.SellerId == sellerId.Value);
+            }
+
             // await kullanmak zorunludur çünkü ToListAsync asenkron bir metottur.
-            var products = await _context.Products.Include(p => p.Category).ToListAsync();
+            var products = await query.ToListAsync();
 
             // Anonim tip kullanarak çıktıyı istediğimiz gibi şekillendiriyoruz.
             // Category içindeki Products koleksiyonunu dahil etmiyoruz.
@@ -36,6 +67,7 @@ namespace ECommerceApi.Controllers
                 p.Price,
                 p.Image,
                 p.CategoryId,
+                p.SellerId, // 🔹 frontende bilgi gitsin
                 Category = p.Category != null ? new // Kategori varsa sadece ID ve Name'i al
                 {
                     p.Category.Id,
@@ -44,6 +76,33 @@ namespace ECommerceApi.Controllers
             }).ToList();
 
             return Ok(productResponses);
+        }
+
+        // 🔹 Sadece giriş yapan satıcının kendi ürünleri
+        [Authorize(Roles = "Admin,Seller")]
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMine()
+        {
+            var currentUserId = GetUserIdFromClaims(); // 🔹
+            if (currentUserId == null) return Forbid();
+
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.SellerId == currentUserId)
+                .ToListAsync();
+
+            var result = products.Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Price,
+                p.Image,
+                p.CategoryId,
+                p.SellerId,
+                Category = p.Category != null ? new { p.Category.Id, p.Category.Name } : null
+            });
+
+            return Ok(result);
         }
 
         // HTTP POST isteğiyle yeni ürün eklemek için bu metot kullanılır.
@@ -58,6 +117,15 @@ namespace ECommerceApi.Controllers
             {
                 return BadRequest("Geçersiz Kategori ID'si.");
             }
+
+            // 🔹 Ürünü ekleyen kullanıcıyı otomatik ata (JWT claim'den)
+            var currentUserId = GetUserIdFromClaims();
+            if (currentUserId != null)
+            {
+                product.SellerId = currentUserId;
+            }
+            // Eğer claim yoksa (ör. AllowAnonymous ise) frontend SellerId gönderebilir;
+            // ama güvenlik için claim'le atamak tercih edilir.
 
             _context.Products.Add(product);
             // await kullanmak zorunludur çünkü SaveChangesAsync asenkron bir metottur.
@@ -78,6 +146,7 @@ namespace ECommerceApi.Controllers
                 product.Price,
                 product.Image,
                 product.CategoryId,
+                product.SellerId, // 🔹
                 Category = product.Category != null ? new
                 {
                     product.Category.Id,
@@ -144,6 +213,10 @@ namespace ECommerceApi.Controllers
             existingProduct.Image = updatedProduct.Image;
             existingProduct.CategoryId = updatedProduct.CategoryId; // CategoryId'yi güncelle
 
+            // 🔹 İstersen burada da güvenlik için sadece sahibi güncelleyebilsin kontrolü yapılabilir:
+            // var currentUserId = GetUserIdFromClaims();
+            // if (User.IsInRole("Seller") && existingProduct.SellerId != currentUserId) return Forbid();
+
             // await kullanmak zorunludur çünkü SaveChangesAsync asenkron bir metottur.
             await _context.SaveChangesAsync();
 
@@ -160,6 +233,7 @@ namespace ECommerceApi.Controllers
                 existingProduct.Price,
                 existingProduct.Image,
                 existingProduct.CategoryId,
+                existingProduct.SellerId, // 🔹
                 Category = existingProduct.Category != null ? new
                 {
                     existingProduct.Category.Id,
@@ -169,5 +243,27 @@ namespace ECommerceApi.Controllers
 
             return Ok(productResponse);
         }
+
+        // 🔹 Küçük yardımcı: JWT içinden user id çek
+        private int? GetUserIdFromClaims()
+        {
+            // Genelde ClaimTypes.NameIdentifier ya da "sub" kullanılır
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (idClaim == null) return null;
+            return int.TryParse(idClaim.Value, out var id) ? id : null;
+        }
+        // JWT ile giriş yapan kullanıcının kimliği (User nesnesindeki claim’ler) backend’de mevcut.
+
+        // Bu yardımcı metot, o claim’lerden user id’yi alıp SellerId alanına yazar.
+
+        // Böylece kullanıcı kendi kimliğini değiştiremez, güvenli olur.
+
+        // Ama daha basit ve güvenliği ikinci plana atan bir yöntem istersen:
+
+        // POST /api/products’ta frontend’ten SellerId alanını da JSON ile gönderebilirsin.
+
+        // O zaman bu yardımcı metoda gerek kalmaz, sadece product.SellerId = gelenVeri yaparsın.
+
+        // Fakat bu durumda herhangi biri API’ye başka bir SellerId gönderip o kişi adına ürün ekleyebilir.
     }
 }

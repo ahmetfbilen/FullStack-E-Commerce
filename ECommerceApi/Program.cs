@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 using System.Text.Json.Serialization; // sonsuz döngüyü kırmak için
 using Microsoft.OpenApi.Models; // Swagger için gerekli (eğer kullanıyorsanız)
+using ECommerceApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,8 +97,15 @@ builder.Services.AddCors(options =>
               .AllowCredentials(); // Kimlik bilgileri (token) içeren istekler için bu önemli
     });
 });
+builder.Services.AddSingleton(new RedisService("localhost:6379"));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DataSeeder.SeedUsers(context);
+}
 
 // Swagger ve CORS
 if (app.Environment.IsDevelopment())

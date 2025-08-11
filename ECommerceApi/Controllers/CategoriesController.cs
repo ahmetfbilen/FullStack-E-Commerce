@@ -3,6 +3,8 @@ using ECommerceApi.Data;
 using ECommerceApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using ECommerceApi.Services; // RedisService için
+using Newtonsoft.Json; // JSON serialize/deserialize için
 
 namespace ECommerceApi.Controllers
 {
@@ -11,10 +13,12 @@ namespace ECommerceApi.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly RedisService _redis; // Redis servisi
 
-        public CategoriesController(AppDbContext context)
+        public CategoriesController(AppDbContext context, RedisService redis)
         {
             _context = context;
+            _redis = redis;
         }
 
         // Tüm kategorileri getir (Herkes erişebilir)
@@ -23,28 +27,55 @@ namespace ECommerceApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
+            string cacheKey = "categories";
+
+            var cachedData = await _redis.Database.StringGetAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                var categoriesFromCache = JsonConvert.DeserializeObject<List<CategoryDto>>(cachedData);
+                return Ok(new { source = "redis", data = categoriesFromCache });
+            }
+
             var categories = await _context.Categories
-                                           .Include(c => c.Products) // İlişkili ürünleri dahil et
+                                           .Include(c => c.Products)
                                            .ToListAsync();
 
-            // Anonim tip kullanarak çıktıyı istediğimiz gibi şekillendiriyoruz.
-            // Her kategorinin içindeki ürünleri de anonim tip olarak alıyoruz,
-            // böylece ürünlerin içinde tekrar kategori bilgisi oluşmuyor.
-            var categoryResponses = categories.Select(c => new // <-- BURADA ANONİM TİP KULLANIYORUZ
+            var categoryResponses = categories.Select(c => new CategoryDto
             {
-                c.Id,
-                c.Name,
-                Products = c.Products?.Select(p => new // Ürünleri de anonim tip olarak al
+                Id = c.Id,
+                Name = c.Name,
+                Products = c.Products?.Select(p => new ProductDto
                 {
-                    p.Id,
-                    p.Name,
-                    p.Price,
-                    p.Image
-                    // Burada CategoryId veya Category navigation property'sini dahil etmiyoruz
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Image = p.Image
                 }).ToList()
             }).ToList();
 
-            return Ok(categoryResponses);
+            await _redis.Database.StringSetAsync(
+                cacheKey,
+                JsonConvert.SerializeObject(categoryResponses),
+                TimeSpan.FromHours(1)
+            );
+
+            return Ok(new { source = "database", data = categoryResponses });
+        }
+
+        // DTO sınıfları
+        public class CategoryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public List<ProductDto> Products { get; set; }
+        }
+
+        public class ProductDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public decimal Price { get; set; }
+            public string Image { get; set; }
         }
 
         // Belirli bir kategoriyi ID'ye göre getir (Herkes erişebilir)
@@ -77,6 +108,9 @@ namespace ECommerceApi.Controllers
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
+            // Yeni kategori eklendiğinde Redis cache'i temizliyoruz
+            await _redis.Database.KeyDeleteAsync("categories");
+
             // Eklenen kategoriyi anonim tip olarak döndür
             var categoryResponse = new // <-- BURADA ANONİM TİP KULLANIYORUZ
             {
@@ -103,6 +137,9 @@ namespace ECommerceApi.Controllers
 
             await _context.SaveChangesAsync();
 
+            // Güncelleme sonrası cache'i temizliyoruz
+            await _redis.Database.KeyDeleteAsync("categories");
+
             return NoContent();
         }
 
@@ -119,6 +156,9 @@ namespace ECommerceApi.Controllers
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
+
+            // Silme sonrası cache'i temizliyoruz
+            await _redis.Database.KeyDeleteAsync("categories");
 
             return NoContent();
         }

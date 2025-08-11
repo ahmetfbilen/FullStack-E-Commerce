@@ -106,9 +106,14 @@ namespace ECommerceApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("SellerId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("SellerId");
 
                     b.ToTable("Products");
                 });
@@ -154,6 +159,9 @@ namespace ECommerceApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .HasDatabaseName("IX_User_Email");
+
                     b.ToTable("Users");
                 });
 
@@ -195,7 +203,13 @@ namespace ECommerceApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ECommerceApi.Models.User", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("Seller");
                 });
 
             modelBuilder.Entity("Cart", b =>

@@ -8,5 +8,7 @@ namespace ECommerceApi.Models
         public string Image { get; set; }
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
+        public int? SellerId { get; set; }
+        public User? Seller { get; set; }
     }
 }
