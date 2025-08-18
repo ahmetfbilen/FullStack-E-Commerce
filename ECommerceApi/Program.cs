@@ -3,10 +3,9 @@ using ECommerceApi.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
-using System.Text.Json.Serialization; // sonsuz döngüyü kırmak için
-using Microsoft.OpenApi.Models; // Swagger için gerekli (eğer kullanıyorsanız)
+using System.Text.Json.Serialization;
+using Microsoft.OpenApi.Models;
 using ECommerceApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,7 +43,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
 });
 
-// SADECE BU TEK AddControllers() ÇAĞRISI OLMALI VE JSON AYARLARI BURADA ZİNCİRLENMELİ
+// JSON döngü hatalarını önlemek için ayar
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -54,53 +53,30 @@ builder.Services.AddControllers()
 
 // Swagger/OpenAPI servislerini ekle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(option => // Swagger'ı JWT ile yapılandırmak isterseniz bu kısmı kullanın
-{
-    // Eğer Swagger'da Authorize butonu istiyorsanız bu kısmı aktif edin
-    // option.SwaggerDoc("v1", new OpenApiInfo { Title = "ECommerce API", Version = "v1" });
-    // option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    // {
-    //     In = ParameterLocation.Header,
-    //     Description = "Lütfen geçerli bir token girin",
-    //     Name = "Authorization",
-    //     Type = SecuritySchemeType.Http,
-    //     BearerFormat = "JWT",
-    //     Scheme = "Bearer"
-    // });
-    // option.AddSecurityRequirement(new OpenApiSecurityRequirement
-    // {
-    //     {
-    //         new OpenApiSecurityScheme
-    //         {
-    //             Reference = new OpenApiReference
-    //             {
-    //                 Type=ReferenceType.SecurityScheme,
-    //                 Id="Bearer"
-    //             }
-    //         },
-    //         new string[]{}
-    //     }
-    // });
-});
-
+builder.Services.AddSwaggerGen();
 
 // CORS politikası (React için gerekli!)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowReactApp", policy =>
     {
-        // React uygulamanızın çalıştığı tam URL'yi belirtin
-        // React uygulamanız genellikle http://localhost:5173/ adresinde çalışır
-        policy.WithOrigins("http://localhost:5173")
+        // React uygulamanızın çalıştığı portu buraya yazın
+        policy.WithOrigins("http://localhost:5173") // React default port
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Kimlik bilgileri (token) içeren istekler için bu önemli
+              .AllowCredentials();
     });
 });
+
+// Redis servisi
 builder.Services.AddSingleton(new RedisService("localhost:6379"));
+
+// Ollama API çağrıları için HttpClient
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
+// Seed işlemi
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -115,9 +91,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll"); // CORS middleware'i UseAuthentication'dan önce gelmeli
 
-// Kimlik doğrulama middleware'ini yetkilendirmeden önce ekleyin
+// CORS middleware'i
+app.UseCors("AllowReactApp");
+
+// Kimlik doğrulama ve yetkilendirme
 app.UseAuthentication();
 app.UseAuthorization();
 

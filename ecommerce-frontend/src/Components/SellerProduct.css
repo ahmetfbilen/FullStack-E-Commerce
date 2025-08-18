@@ -250,3 +250,23 @@ body,
     font-weight: 500;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+}
+
+.pagination button.active {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+}

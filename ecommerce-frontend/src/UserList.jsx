@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react';
-import './Components/SellerProduct.css'; // CSS dosyasını UserList.css olarak değiştirmeyi düşünebilirsiniz.
+import './Components/SellerProduct.css';
 import { useAuth } from './context/AuthContext.jsx';
 
 export default function UserList() {
-    const { authAxios, token, loading, isAuthenticated } = useAuth(); // 1️⃣ token, loading, isAuthenticated'ı al
+    const { authAxios, token, loading, isAuthenticated } = useAuth();
 
     const [users, setUsers] = useState([]);
     const [form, setForm] = useState({
         name: '', lName: '', email: '', password: '', pNumber: '', bDate: ''
     });
 
+    // Sayfalama için state
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 50;
+
     useEffect(() => {
-        // 2️⃣ Sadece yükleme tamamlandığında ve kimlik doğrulama durumu bilindiğinde kullanıcıları çek
-        if (!loading && isAuthenticated) { // Bu sayfa yetkilendirme gerektirdiği için isAuthenticated kontrolü ekledik
+        if (!loading && isAuthenticated) {
             fetchUsers();
         }
-    }, [token, loading, isAuthenticated]); // 3️⃣ Bağımlılıkları token, loading, isAuthenticated olarak değiştir
+    }, [token, loading, isAuthenticated]);
 
     const fetchUsers = async () => {
         try {
@@ -72,7 +75,6 @@ export default function UserList() {
         }
     };
 
-    // 4️⃣ Yükleme durumunu veya yetkilendirme durumunu göster
     if (loading) {
         return <div>Kullanıcılar yükleniyor...</div>;
     }
@@ -80,10 +82,16 @@ export default function UserList() {
         return <div>Bu sayfaya erişim için giriş yapmalısınız.</div>;
     }
 
+    // Sayfalama hesaplamaları
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(users.length / usersPerPage);
+
     return (
         <div className="seller-container">
             <h1>Kullanıcı Paneli</h1>
-            {/* ... (form ve liste içeriği) ... */}
+
             <div className="form">
                 <input placeholder="Ad" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 <input placeholder="Soyad" value={form.lName} onChange={(e) => setForm({ ...form, lName: e.target.value })} />
@@ -95,7 +103,7 @@ export default function UserList() {
             </div>
 
             <ul className="product-list">
-                {users.map((user) => (
+                {currentUsers.map((user) => (
                     <li key={user.id}>
                         <div>
                             <strong>Ad:</strong> {user.name} <br />
@@ -110,6 +118,19 @@ export default function UserList() {
                     </li>
                 ))}
             </ul>
+
+            {/* Sayfa numaraları */}
+            <div className="pagination">
+                {Array.from({ length: totalPages }, (_, index) => (
+                    <button
+                        key={index + 1}
+                        onClick={() => setCurrentPage(index + 1)}
+                        className={currentPage === index + 1 ? "active" : ""}
+                    >
+                        {index + 1}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }
