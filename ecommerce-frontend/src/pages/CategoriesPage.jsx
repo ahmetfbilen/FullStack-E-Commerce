@@ -19,9 +19,24 @@ export default function CategoriesPage() {
     const fetchCategories = async () => {
         try {
             const response = await authAxios.get('/categories');
-            setCategories(response.data);
+            console.log("Kategoriler API cevabı:", response.data);
+
+            // Eğer response.data bir array değilse, uygun alanı al
+            if (Array.isArray(response.data)) {
+                setCategories(response.data);
+            }
+            else if (Array.isArray(response.data.categories)) {
+                setCategories(response.data.categories);
+            }
+            else if (Array.isArray(response.data.data)) {
+                setCategories(response.data.data);
+            }
+            else {
+                setCategories([]); // güvenlik için boş array
+            }
         } catch (error) {
             console.error("Kategoriler çekilirken hata oluştu:", error.response?.data || error.message);
+            setCategories([]); // hata olursa null yerine boş array
         }
     };
 
